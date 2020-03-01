@@ -99,10 +99,41 @@ impl<'a> Iterator for VariablesIter<'a> {
 }
 
 fn find_variables(contents: &str) -> VariablesIter {
-    // lazily compute following regex
-    // r"\\\{\{#.*\}\}|\{\{#([a-zA-Z0-9]+)\s*([a-zA-Z0-9_.\-:/\\\s]+)\}\}")?;
     lazy_static! {
         static ref RE: Regex = Regex::new(r"\{\{\s*([a-zA-Z0-9_]+)\s*\}\}").unwrap();
     }
     VariablesIter(RE.captures_iter(contents))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::replace_all;
+    use toml::value::{Table, Value};
+
+    #[test]
+    pub fn test_variable_replaced() {
+        let to_replace = r" # Text {{var1}} \
+            text \
+            text {{var2}} \
+            val  \
+            (text {{var3}})[{{var3}}/other] \
+        ";
+
+        let mut table = Table::new();
+        table.insert("var1".to_owned(), Value::String("first".to_owned()));
+        table.insert("var2".to_owned(), Value::String("second".to_owned()));
+        table.insert("var3".to_owned(), Value::String("third".to_owned()));
+
+        let result = replace_all(to_replace, &table);
+
+        assert_eq!(
+            result,
+            r" # Text first \
+            text \
+            text second \
+            val  \
+            (text third)[third/other] \
+        "
+        );
+    }
 }
