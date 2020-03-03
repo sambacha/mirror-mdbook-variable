@@ -101,6 +101,8 @@ optional-release:osx:
 
     image: "rust:latest"
     script:
+        - apt update
+        - apt install mingw-w64 --assume-yes
         - rustup target add x86_64-apple-darwin  
         - cargo build --target x86_64-apple-darwin --release
         - cp target/release/mdbook-variables $CI_PROJECT_DIR/mdbook-variables
