@@ -74,6 +74,7 @@ upload_report:
 
 optional-release:linux:
     <<: *optional-release
+    image: "rust:latest"
     script:
         - cargo build --verbose --release
         - cp target/release/mdbook-variables $CI_PROJECT_DIR
@@ -83,6 +84,8 @@ optional-release:linux:
 
 optional-release:windows:
     <<: *optional-release
+
+    image: "rust:latest"
     script:
         - cargo build --verbose --target=x86_64-pc-windows-gnu --release
         - cp target/release/mdbook-variables.exe $CI_PROJECT_DIR
@@ -92,6 +95,8 @@ optional-release:windows:
 
 optional-release:osx:
     <<: *optional-release
+
+    image: "rust:latest"
     script:
         - cargo build --target x86_64-apple-darwin --release
         - cp target/release/mdbook-variables $CI_PROJECT_DIR/mdbook-variables-osx
