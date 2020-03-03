@@ -90,6 +90,7 @@ optional-release:windows:
         - apt update
         - apt install mingw-w64 --assume-yes
         - rustup target add x86_64-pc-windows-gnu
+        # this works tanks for .cargo/config
         - cargo build --verbose --target=x86_64-pc-windows-gnu --release
         - cp target/release/mdbook-variables.exe $CI_PROJECT_DIR
     artifacts:
