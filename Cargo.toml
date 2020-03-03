@@ -11,8 +11,6 @@ keywords = ["markdown", "mdbook", "variables"]
 [badges]
 gitlab = { repository = "tglman/mdbook-variables", branch = "master" }
 
-
-
 [dependencies]
 regex = "1.0.0"
 mdbook = "0.3"
