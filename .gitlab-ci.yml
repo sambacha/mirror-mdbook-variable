@@ -2,6 +2,7 @@ stages:
   - generate_test_data
   - coverage_report
   - upload_report
+  - optional-builds
 
 # Use cargo to generete test data the project
 generate_test_data:
@@ -59,3 +60,44 @@ upload_report:
       - Cargo.toml
       - src/**/*
       - tests/**/*
+
+
+
+
+# -- optional build
+
+.optional-release: &optional-release
+    stage: optional-builds
+    except:
+        - schedules
+    when: manual
+
+optional-release:linux:
+    <<: *optional-release
+    script:
+        - cargo build --verbose --release
+        - cp target/release/mdbook-variables $CI_PROJECT_DIR
+    artifacts:
+        paths:
+            - mdbook-variables
+
+optional-release:windows:
+    <<: *optional-release
+    script:
+        - cargo build --verbose --target=x86_64-pc-windows-gnu --release
+        - cp target/release/mdbook-variables.exe $CI_PROJECT_DIR
+    artifacts:
+        paths:
+            - mdbook-variables
+
+optional-release:osx:
+    <<: *optional-release
+    script:
+        - cargo build --target x86_64-apple-darwin --release
+        - cp target/release/mdbook-variables $CI_PROJECT_DIR/mdbook-variables-osx
+    artifacts:
+        paths:
+            - mdbook-variables-osx
+
+# --
+
