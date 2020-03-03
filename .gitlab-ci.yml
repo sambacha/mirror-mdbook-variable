@@ -102,10 +102,10 @@ optional-release:osx:
     script:
         - rustup target add x86_64-apple-darwin  
         - cargo build --target x86_64-apple-darwin --release
-        - cp target/release/mdbook-variables $CI_PROJECT_DIR/mdbook-variables-osx
+        - cp target/release/mdbook-variables $CI_PROJECT_DIR/mdbook-variables
     artifacts:
         paths:
-            - mdbook-variables-osx
+            - mdbook-variables
 
 # --
 
