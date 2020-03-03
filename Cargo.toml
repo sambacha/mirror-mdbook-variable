@@ -7,6 +7,7 @@ license = "MPL-2.0"
 repository = "https://gitlab.com/tglman/mdbook-variables"
 readme = "README.md"
 keywords = ["markdown", "mdbook", "variables"]
+description = "mdBook proprocessor for risolve variables configured from book.toml"
 
 [badges]
 gitlab = { repository = "tglman/mdbook-variables", branch = "master" }
