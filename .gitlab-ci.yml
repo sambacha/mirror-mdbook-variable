@@ -87,6 +87,7 @@ optional-release:windows:
 
     image: "rust:latest"
     script:
+        - apt install mingw-w64 --allow-yes
         - rustup target add x86_64-pc-windows-gnu
         - cargo build --verbose --target=x86_64-pc-windows-gnu --release
         - cp target/release/mdbook-variables.exe $CI_PROJECT_DIR
@@ -99,7 +100,7 @@ optional-release:osx:
 
     image: "rust:latest"
     script:
-        - rustup target addx86_64-apple-darwin  
+        - rustup target add x86_64-apple-darwin  
         - cargo build --target x86_64-apple-darwin --release
         - cp target/release/mdbook-variables $CI_PROJECT_DIR/mdbook-variables-osx
     artifacts:
