@@ -90,6 +90,10 @@ optional-release:windows:
         - apt update
         - apt install mingw-w64 --assume-yes
         - rustup target add x86_64-pc-windows-gnu
+        - cd ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-pc-windows-gnu/lib/
+        - mv crt2.o crt2.o.bak
+        - cp /usr/x86_64-w64-mingw32/lib/crt2.o ./
+        - cd -
         # this works tanks for .cargo/config
         - cargo build --verbose --target=x86_64-pc-windows-gnu --release
         - cp target/release/mdbook-variables.exe $CI_PROJECT_DIR
