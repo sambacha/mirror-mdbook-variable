@@ -103,7 +103,7 @@ optional-release:osx:
     image: "rust:latest"
     script:
         - apt update
-        - apt install clang --assume-yes
+        - apt install clang cmake --assume-yes
         - mkdir -p cache && cd cache
         - git clone https://github.com/tpoechtrager/osxcross
         - cd osxcross
