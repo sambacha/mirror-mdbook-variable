@@ -26,15 +26,23 @@ impl Preprocessor for VariablesPreprocessor {
 
     fn run(&self, ctx: &PreprocessorContext, mut book: Book) -> Result<Book> {
         let mut variables = None;
+        let mut use_env = false;
         if let Some(config) = ctx.config.get_preprocessor(VariablesPreprocessor::NAME) {
             if let Some(vars) = config.get("variables") {
                 variables = Some(vars);
+            }
+            if let Some(env_config) = config.get("use_env") {
+                if let Value::Boolean(enabled) = env_config {
+                    use_env = *enabled;
+                } else {
+                    eprintln!(" variables preprocess use_env configuration must be a boolean ");
+                }
             }
         }
         if let Some(Value::Table(vars)) = variables {
             book.for_each_mut(|section: &mut BookItem| {
                 if let BookItem::Chapter(ref mut ch) = *section {
-                    ch.content = replace_all(&ch.content, vars);
+                    ch.content = replace_all(&ch.content, vars, use_env);
                 }
             });
         }
@@ -42,7 +50,7 @@ impl Preprocessor for VariablesPreprocessor {
     }
 }
 
-fn replace_all(s: &str, variables: &Table) -> String {
+fn replace_all(s: &str, variables: &Table, use_env: bool) -> String {
     // When replacing one thing in a string by something with a different length,
     // the indices after that will not correspond,
     // we therefore have to store the difference to correct this
@@ -56,6 +64,10 @@ fn replace_all(s: &str, variables: &Table) -> String {
                 replaced.push_str(&s);
             } else {
                 replaced.push_str(&value.to_string());
+            }
+        } else if use_env {
+            if let Ok(value) = std::env::var(&variable.name) {
+                replaced.push_str(&value);
             }
         }
         previous_end_index = variable.end_index;
@@ -124,7 +136,33 @@ mod tests {
         table.insert("var2".to_owned(), Value::String("second".to_owned()));
         table.insert("var3".to_owned(), Value::String("third".to_owned()));
 
-        let result = replace_all(to_replace, &table);
+        let result = replace_all(to_replace, &table, false);
+
+        assert_eq!(
+            result,
+            r" # Text first \
+            text \
+            text second \
+            val  \
+            (text third)[third/other] \
+        "
+        );
+    }
+    #[test]
+    pub fn test_variable_replaced_env() {
+        let to_replace = r" # Text {{var1}} \
+            text \
+            text {{var2}} \
+            val  \
+            (text {{var3}})[{{var3}}/other] \
+        ";
+
+        std::env::set_var("var1".to_owned(), "first".to_owned());
+        std::env::set_var("var2".to_owned(), "second".to_owned());
+        std::env::set_var("var3".to_owned(), "third".to_owned());
+
+        let table = Table::new();
+        let result = replace_all(to_replace, &table, true);
 
         assert_eq!(
             result,

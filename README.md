@@ -20,6 +20,19 @@ book.toml
 name= "my wonderful name"
 ```
 
+It does support looking for variable values in the environment variables behind a flag
+
+Toml configured variable right now take precedence on environment variables.
+```toml
+
+[preprocessor.variables]
+use_env = true
+
+[preprocessor.variables.variables]
+other_variabled_not_in_env= "value"
+```
+
+
 The implementation got a lot of inspiration and code from the mdbook links preprocessor an mdbook-plantuml.
 
 
