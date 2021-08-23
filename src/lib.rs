@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
 use mdbook::{
-    book::{Book, BookItem},
+    book::{Book, BookItem, Chapter},
     errors::Result,
     preprocess::{Preprocessor, PreprocessorContext},
 };
@@ -30,6 +30,8 @@ impl Preprocessor for VariablesPreprocessor {
         if let Some(config) = ctx.config.get_preprocessor(VariablesPreprocessor::NAME) {
             if let Some(vars) = config.get("variables") {
                 variables = Some(vars);
+            } else {
+                eprintln!(" not found variables in configuration {:?} ", config);
             }
             if let Some(env_config) = config.get("use_env") {
                 if let Value::Boolean(enabled) = env_config {
@@ -38,11 +40,13 @@ impl Preprocessor for VariablesPreprocessor {
                     eprintln!(" variables preprocess use_env configuration must be a boolean ");
                 }
             }
+        } else {
+            eprintln!(" not found {} configuration ", VariablesPreprocessor::NAME);
         }
         if let Some(Value::Table(vars)) = variables {
             book.for_each_mut(|section: &mut BookItem| {
                 if let BookItem::Chapter(ref mut ch) = *section {
-                    ch.content = replace_all(&ch.content, vars, use_env);
+                    ch.content = replace_all(ch, vars, use_env);
                 }
             });
         }
@@ -50,16 +54,25 @@ impl Preprocessor for VariablesPreprocessor {
     }
 }
 
-fn replace_all(s: &str, variables: &Table, use_env: bool) -> String {
+fn replace_all(ch: &Chapter, variables: &Table, use_env: bool) -> String {
     // When replacing one thing in a string by something with a different length,
     // the indices after that will not correspond,
     // we therefore have to store the difference to correct this
     let mut previous_end_index = 0;
     let mut replaced = String::new();
-
-    for variable in find_variables(s) {
-        replaced.push_str(&s[previous_end_index..variable.start_index]);
-        if let Some(value) = variables.get(&variable.name) {
+    let start = Value::Table(variables.clone());
+    for variable in find_variables(&ch.content) {
+        replaced.push_str(&ch.content[previous_end_index..variable.start_index]);
+        let variable_path = variable.name.split('.');
+        let mut current_value = Some(&start);
+        for variable_name in variable_path {
+            current_value = if let Some(&Value::Table(ref table)) = current_value {
+                table.get(variable_name)
+            } else {
+                None
+            };
+        }
+        if let Some(value) = current_value {
             if let Value::String(s) = value {
                 replaced.push_str(&s);
             } else {
@@ -68,12 +81,24 @@ fn replace_all(s: &str, variables: &Table, use_env: bool) -> String {
         } else if use_env {
             if let Ok(value) = std::env::var(&variable.name) {
                 replaced.push_str(&value);
+            } else {
+                eprintln!(
+                    "Not found value for variable '{}' from chapter '{}'",
+                    variable.name,
+                    ch.path.as_ref().map(|p| p.to_str()).flatten().unwrap_or("")
+                );
             }
+        } else {
+            eprintln!(
+                "Not found value for variable '{}' from chapter '{}'",
+                variable.name,
+                ch.path.as_ref().map(|p| p.to_str()).flatten().unwrap_or("")
+            );
         }
         previous_end_index = variable.end_index;
     }
 
-    replaced.push_str(&s[previous_end_index..]);
+    replaced.push_str(&ch.content[previous_end_index..]);
     replaced
 }
 
@@ -112,7 +137,7 @@ impl<'a> Iterator for VariablesIter<'a> {
 
 fn find_variables(contents: &str) -> VariablesIter {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r"\{\{\s*([a-zA-Z0-9_]+)\s*\}\}").unwrap();
+        static ref RE: Regex = Regex::new(r"\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}").unwrap();
     }
     VariablesIter(RE.captures_iter(contents))
 }
