@@ -145,6 +145,7 @@ fn find_variables(contents: &str) -> VariablesIter {
 #[cfg(test)]
 mod tests {
     use super::replace_all;
+    use mdbook::book::Chapter;
     use toml::value::{Table, Value};
 
     #[test]
@@ -161,7 +162,11 @@ mod tests {
         table.insert("var2".to_owned(), Value::String("second".to_owned()));
         table.insert("var3".to_owned(), Value::String("third".to_owned()));
 
-        let result = replace_all(to_replace, &table, false);
+        let result = replace_all(
+            &Chapter::new("", to_replace.to_owned(), "", vec![]),
+            &table,
+            false,
+        );
 
         assert_eq!(
             result,
@@ -187,7 +192,11 @@ mod tests {
         std::env::set_var("var3".to_owned(), "third".to_owned());
 
         let table = Table::new();
-        let result = replace_all(to_replace, &table, true);
+        let result = replace_all(
+            &Chapter::new("", to_replace.to_owned(), "", vec![]),
+            &table,
+            true,
+        );
 
         assert_eq!(
             result,
