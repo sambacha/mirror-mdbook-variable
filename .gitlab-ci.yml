@@ -99,23 +99,14 @@ optional-release:windows:
 
 optional-release:osx:
     <<: *optional-release
-
-    image: "rust:latest"
+    image: "joseluisq/rust-linux-darwin-builder:1.54.0"
     script:
-        - apt update
-        - apt install clang cmake --assume-yes
-        - mkdir -p cache && cd cache
-        - git clone https://github.com/tpoechtrager/osxcross
-        - cd osxcross
-        - mkdir -p tarballs
-        - curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.13.sdk.tar.xz > tarballs/MacOSX10.13.sdk.tar.xz 
-        - UNATTENDED=yes OSX_VERSION_MIN=10.7 ./build.sh
-        - rustup target add x86_64-apple-darwin  
-        - PATH="/dockercache/osxcross/target/bin:$PATH" CC=o64-clang CXX=o64-clang++  cargo build --target x86_64-apple-darwin --release
-        - cp target/release/mdbook-variables $CI_PROJECT_DIR/mdbook-variables
+      - cp /root/.cargo/config "$CARGO_HOME/"
+      - cargo build --target x86_64-apple-darwin --release
+      - cp target/x86_64-apple-darwin/release/mdbook-variables $CI_PROJECT_DIR/mdbook-variables-osx
     artifacts:
         paths:
-            - mdbook-variables
+            - mdbook-variables-osx
 
 # --
 
