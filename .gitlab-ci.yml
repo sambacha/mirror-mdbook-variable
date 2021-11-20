@@ -92,7 +92,7 @@ optional-release:windows:
         - rustup target add x86_64-pc-windows-gnu
         # this works tanks for .cargo/config
         - cargo build --verbose --target=x86_64-pc-windows-gnu --release
-        - cp target/release/mdbook-variables.exe $CI_PROJECT_DIR
+        - cp target/x86_64-pc-windows-gnu/release/mdbook-variables.exe $CI_PROJECT_DIR
     artifacts:
         paths:
             - mdbook-variables.exe
