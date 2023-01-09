@@ -1,4 +1,4 @@
-use clap::{App, Arg, ArgMatches, SubCommand};
+use clap::{Command, Arg, ArgMatches};
 use mdbook::errors::Error as MDBookError;
 use mdbook::preprocess::{CmdPreprocessor, Preprocessor};
 use mdbook_variables::VariablesPreprocessor;
@@ -7,13 +7,13 @@ use std::process;
 
 fn main() {
     const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-    let app = App::new("mdBook variables preprocessor")
+    let app = Command::new("mdBook variables preprocessor")
         .version(VERSION)
         .author("Tglman")
         .about("A mdbook preprocessor which replaces {{variables}} with values configured in the book.tom")
         .subcommand(
-            SubCommand::with_name("supports")
-                .arg(Arg::with_name("renderer").required(true))
+            Command::new("supports")
+                .arg(Arg::new("renderer").required(true))
                 .about("Check whether a renderer is supported by this preprocessor"),
         );
 
@@ -28,7 +28,7 @@ fn main() {
     }
 }
 fn handle_supports(sub_args: &ArgMatches) -> ! {
-    let renderer = sub_args.value_of("renderer").expect("Required argument");
+    let renderer = sub_args.get_one::<String>("renderer").expect("Required argument");
     let supported = renderer != "not-supported";
 
     // Signal whether the renderer is supported by exiting with 1 or 0.
