@@ -34,8 +34,8 @@ impl Preprocessor for VariablesPreprocessor {
                 eprintln!(" not found variables in configuration {:?} ", config);
             }
             if let Some(env_config) = config.get("use_env") {
-                if let Value::Boolean(enabled) = env_config {
-                    use_env = *enabled;
+                if let &Value::Boolean(enabled) = env_config {
+                    use_env = enabled;
                 } else {
                     eprintln!(" variables preprocess use_env configuration must be a boolean ");
                 }
@@ -43,7 +43,7 @@ impl Preprocessor for VariablesPreprocessor {
         } else {
             eprintln!(" not found {} configuration ", VariablesPreprocessor::NAME);
         }
-        if let Some(Value::Table(vars)) = variables {
+        if let Some(&Value::Table(ref vars)) = variables {
             book.for_each_mut(|section: &mut BookItem| {
                 if let BookItem::Chapter(ref mut ch) = *section {
                     ch.content = replace_all(ch, vars, use_env);
